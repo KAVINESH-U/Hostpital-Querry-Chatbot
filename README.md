@@ -138,10 +138,6 @@ AI & Data
 ---
 
 
-The AI system will suggest a draft response for staff review.
-
----
-
 # 📊 Example Dashboard
 
 The system provides:
