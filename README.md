@@ -82,8 +82,6 @@ Doctors can:
 ---
 
 
----
-
 # ✨ Key Features
 
 ### 🤖 AI Response Suggestions
@@ -161,15 +159,5 @@ This system is designed to assist healthcare professionals and **should not repl
 
 All AI responses must be reviewed by qualified staff.
 
----
 
-# 👨‍💻 Authors
-
-Developed as part of a healthcare AI hackathon project.
-
----
-
-# 📜 License
-
-MIT License
 
