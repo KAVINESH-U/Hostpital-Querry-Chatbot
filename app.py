@@ -4,12 +4,11 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 import plotly.graph_objects as go
-import plotly.express as px
 
 st.set_page_config(page_title="AI Clinical Assistant", layout="wide")
 
 # --------------------------------------------------
-# UI STYLE
+# MODERN UI STYLE
 # --------------------------------------------------
 
 st.markdown("""
@@ -25,9 +24,9 @@ background:#0f172a;
 
 .card{
 background:white;
-padding:18px;
-border-radius:12px;
-box-shadow:0 4px 14px rgba(0,0,0,0.25);
+padding:20px;
+border-radius:14px;
+box-shadow:0px 6px 18px rgba(0,0,0,0.25);
 }
 
 .metric-title{
@@ -41,14 +40,6 @@ font-weight:700;
 color:#111;
 }
 
-.response-box{
-background:white;
-padding:20px;
-border-radius:12px;
-color:black;
-box-shadow:0 4px 14px rgba(0,0,0,0.2);
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -60,7 +51,7 @@ st.title("🏥 AI Clinical Response Assistant")
 st.caption("AI powered support system for hospital staff")
 
 # --------------------------------------------------
-# LOAD DATA
+# LOAD DATASET
 # --------------------------------------------------
 
 @st.cache_data
@@ -75,7 +66,7 @@ questions = data["question"].tolist()
 answers = data["answer"].tolist()
 
 # --------------------------------------------------
-# MODEL
+# LOAD MODEL
 # --------------------------------------------------
 
 @st.cache_resource
@@ -85,7 +76,7 @@ def load_model():
 model = load_model()
 
 # --------------------------------------------------
-# FAISS INDEX
+# CREATE FAISS INDEX
 # --------------------------------------------------
 
 @st.cache_resource
@@ -129,7 +120,7 @@ st.sidebar.metric("BMI", round(bmi,2))
 
 heart_rate = st.sidebar.slider("Heart Rate",40,160,80)
 temperature = st.sidebar.slider("Temperature",35.0,41.0,37.0)
-oxygen = st.sidebar.slider("Oxygen",70,100,98)
+oxygen = st.sidebar.slider("Oxygen Saturation",70,100,98)
 bp = st.sidebar.slider("Blood Pressure",80,180,120)
 resp = st.sidebar.slider("Respiratory Rate",10,40,18)
 
@@ -174,7 +165,7 @@ with col4:
 st.divider()
 
 # --------------------------------------------------
-# PATIENT QUERY
+# PATIENT QUESTION
 # --------------------------------------------------
 
 st.subheader("💬 Patient Question")
@@ -203,13 +194,11 @@ Recommended actions:
 • Seek medical consultation if symptoms persist
 """
 
-    st.markdown("<div class='response-box'>", unsafe_allow_html=True)
-
     st.subheader("🤖 AI Suggested Response")
-    st.write(response)
-    st.metric("AI Confidence Score", round(confidence,2))
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.info(response)
+
+    st.metric("AI Confidence Score", round(confidence,2))
 
     st.divider()
 
@@ -229,45 +218,10 @@ Recommended actions:
         st.warning("Fever Detected")
 
 # --------------------------------------------------
-# RISK SCORE GAUGE
+# VITAL COMPARISON GRAPH
 # --------------------------------------------------
 
-    risk = 0
-
-    if heart_rate > 120:
-        risk += 30
-
-    if oxygen < 92:
-        risk += 40
-
-    if temperature > 38:
-        risk += 20
-
-    if bp > 140:
-        risk += 10
-
-    fig_gauge = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=risk,
-        title={'text': "Patient Risk Score"},
-        gauge={
-            'axis': {'range': [0,100]},
-            'bar': {'color': "red"},
-            'steps': [
-                {'range':[0,30],'color':'green'},
-                {'range':[30,70],'color':'yellow'},
-                {'range':[70,100],'color':'red'}
-            ]
-        }
-    ))
-
-    st.plotly_chart(fig_gauge, use_container_width=True)
-
-# --------------------------------------------------
-# VITAL COMPARISON
-# --------------------------------------------------
-
-    st.subheader("Patient vs Normal Vitals")
+    st.subheader("📊 Clinical Vital Comparison")
 
     categories = ["Heart Rate","Temperature","Oxygen","Respiratory"]
 
@@ -279,42 +233,51 @@ Recommended actions:
     fig.add_trace(go.Bar(
         x=categories,
         y=normal_values,
-        name="Normal"
+        name="Normal Range",
+        marker_color="#22c55e"
     ))
 
     fig.add_trace(go.Bar(
         x=categories,
         y=patient_values,
-        name="Patient"
+        name="Patient",
+        marker_color="#ef4444"
     ))
 
-    fig.update_layout(template="plotly_dark")
+    fig.update_layout(
+        template="plotly_dark",
+        height=420,
+        title="Patient vs Normal Vital Signs",
+        margin=dict(l=20,r=20,t=40,b=20)
+    )
 
     st.plotly_chart(fig,use_container_width=True)
 
 # --------------------------------------------------
-# HEART RATE MONITOR
+# HEART MONITOR SIMULATION
 # --------------------------------------------------
 
-    st.subheader("Heart Rate Monitor Simulation")
+    st.subheader("📈 Heart Rate Monitor")
 
-    time = np.arange(0,60)
+    t = np.linspace(0,20,300)
 
-    hr_data = heart_rate + np.sin(time/3)*5 + np.random.normal(0,1,len(time))
+    ecg = heart_rate + 4*np.sin(t*2) + np.random.normal(0,0.8,len(t))
 
     fig2 = go.Figure()
 
     fig2.add_trace(go.Scatter(
-        x=time,
-        y=hr_data,
-        mode='lines',
-        line=dict(width=3)
+        x=t,
+        y=ecg,
+        mode="lines",
+        line=dict(color="#00ff9c",width=3)
     ))
 
     fig2.update_layout(
         template="plotly_dark",
+        height=350,
         xaxis_title="Time",
-        yaxis_title="Heart Rate"
+        yaxis_title="Heart Rate",
+        title="Live Heart Rhythm Simulation"
     )
 
     st.plotly_chart(fig2,use_container_width=True)
@@ -323,7 +286,7 @@ Recommended actions:
 # DOCTOR REVIEW PANEL
 # --------------------------------------------------
 
-    st.subheader("Doctor Review")
+    st.subheader("👨‍⚕ Doctor Review Panel")
 
     edited = st.text_area(
         "Edit response before sending",
@@ -332,4 +295,4 @@ Recommended actions:
     )
 
     if st.button("Send Response"):
-        st.success("Response sent to patient successfully")
+        st.success("Response sent to patient successfully!")
